@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import {
   StyleSheet,
-  Text,
   View,
   Dimensions,
   Animated,
@@ -13,7 +12,7 @@ const { width, height } = Dimensions.get('window');
 type IOptions = {
   content: JSX.Element;
 };
-type Ishow = (options: IOptions, callback?: () => void) => void;
+type Ishow = (options: IOptions) => void;
 
 interface IProps {}
 interface IState {
@@ -26,13 +25,13 @@ class Popup extends Component<IProps, IState> {
   hideAnimated: Animated.CompositeAnimation;
   static _this: any;
 
-  constructor(props: any) {
+  constructor(props: IProps) {
     super(props);
     Popup._this = this;
     this.state = {
-      show: false, //显示、隐藏
-      animatedValue: new Animated.Value(0), //动画值
-      content: <Text>无内容</Text>,
+      show: false, //显示or隐藏
+      animatedValue: new Animated.Value(0), // 动画数值
+      content: <View />,
     };
     this.showAnimated = Animated.timing(this.state.animatedValue, {
       toValue: 1,
@@ -45,15 +44,14 @@ class Popup extends Component<IProps, IState> {
       useNativeDriver: true,
     });
   }
-  static show: Ishow = (options, callback) => {
-    const content = options.content || <Text>无内容</Text>;
+  static show: Ishow = options => {
+    const content = options.content || Popup._this.state.content;
 
     Popup._this.setState({
       show: true,
       content,
-      callback,
     });
-    // 动画值初始化为0,并开始执行动画
+    // 动画数值初始0，开始执行
     Popup._this.state.animatedValue.setValue(0);
     Popup._this.showAnimated.start();
   };
@@ -66,7 +64,7 @@ class Popup extends Component<IProps, IState> {
   componentWillUnmount() {
     BackHandler.removeEventListener('hardwareBackPress', this.onBackPress);
   }
-  // 安卓返回键关闭APP
+  // 拦截安卓返回键
   onBackPress = () => {
     if (this.state.show) {
       this.popupHide();
@@ -76,11 +74,9 @@ class Popup extends Component<IProps, IState> {
     }
   };
   popupHide = () => {
-    // 动画值初始化为0
+    // 动画数值初始1，开始执行
     this.state.animatedValue.setValue(1);
-    // 开始执行动画
     this.hideAnimated.start(() => {
-      // this.state.callback && this.state.callback({ confirm: true });
       this.setState({ show: false });
     });
   };
